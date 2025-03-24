@@ -239,7 +239,7 @@ const getYouTubeElement = (elementId) => {
  */
 const getRecommendationContainer = () => {
     const container = document.createElement("div");
-    container.className = "container-fluid scrollable-container overflow-auto my-5 rounded border";
+    container.className = "container-fluid scrollable-container bg-white overflow-auto my-5 rounded border";
     container.id = ELEMENT_IDS.recommendationsWrapper;
 
     return container;
