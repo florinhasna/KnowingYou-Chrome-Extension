@@ -23,7 +23,7 @@ const UPDATES_TO_BACKGROUND = {
 const BACK_END_URL = 'https://wruzvj4tp2.execute-api.eu-west-2.amazonaws.com';
 
 /** @constant {number} INTERVAL_UPDATES - Interval at which the extension is collecting interaction data. */
-const INTERVAL_UPDATES = 10000;
+const INTERVAL_UPDATES = 3000;
 
 let interactions = {
     whileWatching: {}
