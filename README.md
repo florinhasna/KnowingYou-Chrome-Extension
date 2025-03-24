@@ -1,6 +1,8 @@
 # WNN-Chrome-Extension-Instructions
 
-Thank you for participating in testing KnowingYou Chrome Extension!
+Thank you for participating in the testing of the KnowingYou Chrome Extension!
+For a successful testing session, please keep the extension enabled while watching as many videos as possible. 
+It is ideal to test the extension during your natural video-watching experience, rather than solely for the purpose of testing the extension itself.
 
 INSTALLATION:
 1. Download the extension from this repository. 
@@ -26,11 +28,9 @@ DIRECTIONS OF USE:
 
    THE EXTENSION DOES NOT COLLECT ANY PERSONAL DATA.
 
-The idea behind testing is that users will choose recommendations
-regardless the recommender. The aim is to compare the KnowingYou
-recommender against YouTube recommender. Please choose only the video
-you are interested in watching.
+The idea behind testing is that users will choose recommendations regardless of the recommender. 
+The aim is to compare the KnowingYou recommender against the YouTube recommender. 
+Please select only the videos you are interested in watching — the more videos you watch, the better the results.
 
-If you constantly seeing error messages in the container when recommendations 
-are retrieved, it means that the agent is timing out, therefore, in the 
-immediate period of time you will not receive recommendations.
+If you are constantly seeing error messages in the container when retrieving recommendations, 
+it means that the agent is timing out. As a result, you will not receive recommendations for a period of time.
