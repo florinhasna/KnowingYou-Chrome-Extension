@@ -1,31 +1,30 @@
 {
-    "manifest_version": 3,
-    "name": "KnowingYou",
-    "version": "1.0",
-    "description": "Tracks YouTube activity using the YouTube Data API.",
-    "permissions": [
-      "activeTab",
-      "scripting"
-    ],
-    "host_permissions": [
-      "*://www.youtube.com/*"
-    ],
-    "background": {
-      "service_worker": "scripts/background.js"
-    },
-    "content_scripts": [
-      {
-        "matches": [
-          "*://www.youtube.com/*"
-        ],
-        "js": [
-          "scripts/content.js"
-        ],
-        "css": [
-          "css/bootstrap/bootstrap.min.css",
-          "css/style.css"
-        ],
-        "run_at": "document_idle"
-      }
-    ]
-  }
+  "manifest_version": 3,
+  "name": "KnowingYou",
+  "version": "1.0",
+  "description": "Tracks YouTube activity, and recommends videos based on interactions.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://www.youtube.com/*"
+  ],
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://www.youtube.com/*"
+      ],
+      "js": [
+        "scripts/content.js"
+      ],
+      "css": [
+        "css/style.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

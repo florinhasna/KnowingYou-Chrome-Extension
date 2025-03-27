@@ -74,16 +74,10 @@ chrome.runtime.onConnect.addListener((port) => {
                 console.log("Sending low scored videos to content page...")
                 let videos = Object.values(previouslyRecommended.lowScoreVideos);
 
-                if (videos.length > 0) {
-                    port.postMessage({
-                        workerUpdate: WORKER_UPDATES.showLowScoreVideos,
-                        recommendations: videos
-                    });
-                } else {
-                    port.postMessage({
-                        workerUpdate: WORKER_UPDATES.lowScoreVideosError
-                    });
-                }
+                port.postMessage({
+                    workerUpdate: WORKER_UPDATES.showLowScoreVideos,
+                    recommendations: videos
+                });
 
                 break;
             case UPDATES_TO_BACKGROUND.intervalUpdate:

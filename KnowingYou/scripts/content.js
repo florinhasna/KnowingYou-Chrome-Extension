@@ -28,7 +28,8 @@ const ELEMENT_IDS = {
     recommendationsWrapper: 'wnnWrapper',
     recommendationsContainer: 'wnnContainer',
     loading: 'loadingMessage',
-    lowScoreButton: 'lowScoreButton'
+    lowScoreButton: 'lowScoreButton',
+    messageContainer: 'kyMessageContainer'
 }
 
 /** @constant {string} MAIN_HEADER - Header of the container, name of recommender. */
@@ -38,23 +39,27 @@ const MAIN_HEADER = "KnowingYou";
 const MESSAGES = {
     insufficientTraining: {
         message: "Not enough data for recommendations, please watch some videos so the agent can learn about your preferences...",
-        type: "info"
+        type: "ky-info"
     },
     recommendationsError: {
         message: "Something went wrong retrieving recommendations, please continue watching...",
-        type: "danger"
+        type: "ky-error"
+    },
+    noRecommendations: {
+        message: "No videos to recommend this time, the videos have received a low score...",
+        type: "ky-error"
     },
     successfulTraining: {
         message: "Agent trained successfully...",
-        type: "success"
+        type: "ky-success"
     },
     trainingError: {
         message: "Something went wrong when training the agent...",
-        type: "danger"
+        type: "ky-error"
     },
-    lowScoreError: {
-        message: "Unable to display agent's low rated videos, there might not be any...",
-        type: "info"
+    noLowRecommendations: {
+        message: "No low score videos this time...",
+        type: "ky-success"
     }
 }
 
@@ -203,12 +208,12 @@ const initialiseContainer = (elementId) => {
         return;
 
     let container = getRecommendationContainer();
-    container.appendChild(getHeader(MAIN_HEADER, 'bg-body-tertiary'));
+    container.appendChild(getHeader(MAIN_HEADER));
 
-    let row = getRow(elementId);
-    container.appendChild(row);
+    let grid = getGrid();
+    container.appendChild(grid);
 
-    row.appendChild(getLoadingMessage());
+    grid.appendChild(getLoadingMessage());
 
     youTubeElement.prepend(container);
 }
@@ -239,7 +244,7 @@ const getYouTubeElement = (elementId) => {
  */
 const getRecommendationContainer = () => {
     const container = document.createElement("div");
-    container.className = "container-fluid scrollable-container bg-white overflow-auto my-5 rounded border";
+    container.className = "ky-main-container";
     container.id = ELEMENT_IDS.recommendationsWrapper;
 
     return container;
@@ -248,9 +253,9 @@ const getRecommendationContainer = () => {
 /** Initialises a header element.
  * @returns {HTMLElement} The created heaeder.
  */
-const getHeader = (text, background) => {
-    const header = document.createElement("h1");
-    header.className = `text-center bolder ${background} rounded display-2`
+const getHeader = (text) => {
+    const header = document.createElement("span");
+    header.className = 'ky-header';
     header.innerHTML = text;
 
     return header;
@@ -258,20 +263,14 @@ const getHeader = (text, background) => {
 
 /** Creates another element, to store elements in columns when needed.
  * @param {string} elementId - The ID of the element to be appended on.
- * @returns {HTMLElement} The created row.
+ * @returns {HTMLElement} The created grid.
  */
-const getRow = (elementId) => {
-    const row = document.createElement("div");
+const getGrid = () => {
+    const grid = document.createElement("div");
+    grid.className = "ky-grid";
+    grid.id = ELEMENT_IDS.recommendationsContainer;
 
-    if (elementId === ELEMENT_IDS.homepageElement) {
-        row.className = "row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 m-3";
-    } else {
-        row.className = "row row-cols-1 g-4 m-3";
-    }
-
-    row.id = ELEMENT_IDS.recommendationsContainer;
-
-    return row;
+    return grid;
 }
 
 /** Creates a loading message with a spinner.#
@@ -279,20 +278,18 @@ const getRow = (elementId) => {
  */
 const getLoadingMessage = () => {
     const container = document.createElement("div");
-    container.className = "d-flex align-items-center m-auto p-5";
+    container.className = "ky-grid-item";
     container.id = ELEMENT_IDS.loading;
 
-    const strong = document.createElement("strong");
-    strong.className = "fs-4"
-    strong.setAttribute("role", "status");
-    strong.textContent = "Loading recommendations...";
+    const text = document.createElement("p");
+    text.className = "ky-loading-text"
+    text.textContent = "Loading recommendations...";
 
     const spinner = document.createElement("div");
-    spinner.className = "spinner-border ms-auto text-info";
-    spinner.setAttribute("aria-hidden", "true");
+    spinner.className = "ky-spinner"
 
-    container.appendChild(strong);
     container.appendChild(spinner);
+    container.appendChild(text);
 
     return container;
 }
@@ -302,7 +299,12 @@ PORT.onMessage.addListener((message) => {
     switch (message.workerUpdate) {
         case WORKER_UPDATES.showRecommendations:
             clearElement(ELEMENT_IDS.recommendationsContainer);
-            loadRecommendations(message.recommendations, ELEMENT_IDS.recommendationsContainer);
+
+            if (message.recommendations.length === 0) {
+                displayMessage(MESSAGES.noRecommendations, ELEMENT_IDS.recommendationsWrapper);
+            } else {
+                loadRecommendations(message.recommendations);
+            }
 
             // Append a button to display low score videos if there isn't one
             if (!document.getElementById(ELEMENT_IDS.lowScoreButton)) {
@@ -314,28 +316,34 @@ PORT.onMessage.addListener((message) => {
             clearElement(ELEMENT_IDS.recommendationsContainer);
 
             if (message.needsMoreTraining) {
-                displayMessage(MESSAGES.insufficientTraining, ELEMENT_IDS.recommendationsContainer);
+                displayMessage(MESSAGES.insufficientTraining, ELEMENT_IDS.recommendationsWrapper);
             } else {
-                displayMessage(MESSAGES.recommendationsError, ELEMENT_IDS.recommendationsContainer);
+                displayMessage(MESSAGES.recommendationsError, ELEMENT_IDS.recommendationsWrapper);
             }
 
             break;
         case WORKER_UPDATES.showLowScoreVideos:
+
             document.getElementById(ELEMENT_IDS.lowScoreButton).remove();
-            loadRecommendations(message.recommendations, ELEMENT_IDS.recommendationsContainer);
+
+            if (message.recommendations.length === 0) {
+                displayMessage(MESSAGES.noLowRecommendations, ELEMENT_IDS.recommendationsWrapper);
+            } else {
+                loadRecommendations(message.recommendations);
+            }
 
             break;
         case WORKER_UPDATES.lowScoreVideosError:
-            displayMessage(MESSAGES.lowScoreError, ELEMENT_IDS.recommendationsContainer);
+            displayMessage(MESSAGES.lowScoreError, ELEMENT_IDS.recommendationsWrapper);
             document.getElementById(ELEMENT_IDS.lowScoreButton).remove();
 
             break;
         case WORKER_UPDATES.trainingConfirmation:
-            displayMessage(MESSAGES.successfulTraining, ELEMENT_IDS.recommendationsContainer);
+            displayMessage(MESSAGES.successfulTraining, ELEMENT_IDS.recommendationsWrapper);
 
             break;
         case WORKER_UPDATES.trainingError:
-            displayMessage(MESSAGES.trainingError, ELEMENT_IDS.recommendationsContainer);
+            displayMessage(MESSAGES.trainingError, ELEMENT_IDS.recommendationsWrapper);
 
             break;
         case WORKER_UPDATES.intervalCheck:
@@ -370,10 +378,10 @@ const displayMessage = (info, elementId) => {
         return;
 
     const messageContainer = document.createElement("div");
-    messageContainer.className = `alert alert-${info.type} d-flex justify-content-center m-auto`;
+    messageContainer.id = ELEMENT_IDS.messageContainer;
+    messageContainer.className = `ky-message-wrapper ${info.type}`;
 
-    const messageText = document.createElement("span");
-    messageText.className = "fs-3"
+    const messageText = document.createElement("p");
     messageText.textContent = info.message;
 
     messageContainer.appendChild(messageText);
@@ -385,11 +393,17 @@ const displayMessage = (info, elementId) => {
  * @param {Object[]} recommendations - The recommendations to be loaded.
  * @param {string} elementId - The ID of the element to be appended on.
  */
-const loadRecommendations = (recommendations, elementId) => {
-    let container = document.getElementById(elementId);
+const loadRecommendations = (recommendations) => {
+    let container = document.getElementById(ELEMENT_IDS.recommendationsContainer);
 
     if (!container)
         return;
+
+    let messageContainer = document.getElementById(ELEMENT_IDS.messageContainer);
+
+    if (messageContainer) {
+        messageContainer.remove();
+    }
 
     for (let recommendation of recommendations) {
         let videoContainer = getVideoContainer(recommendation);
@@ -409,7 +423,7 @@ const loadRecommendations = (recommendations, elementId) => {
 const getVideoContainer = (video) => {
     const col = document.createElement("div");
     col.style.cursor = "pointer";
-    col.className = "col iframe-wrapper";
+    col.className = "ky-grid-item";
 
     let thumbnail = document.createElement("img");
 
@@ -437,14 +451,19 @@ const getVideoContainer = (video) => {
 
     // Create title
     let titleElement = document.createElement("p");
+    titleElement.className = "ky-video-text"
     titleElement.textContent = video.title;
-    titleElement.style.fontSize = "14px";
-    titleElement.style.fontWeight = "bold";
-    titleElement.style.marginTop = "5px";
+
+    // Create title
+    let channelElement = document.createElement("p");
+    channelElement.className = "ky-video-text ky-video-channel"
+    channelElement.textContent = video.channel;
+
 
     // Append elements
     col.appendChild(thumbnail);
     col.appendChild(titleElement);
+    col.appendChild(channelElement);
 
     col.appendChild(getScoreContainer(video.score))
 
@@ -467,17 +486,19 @@ const getVideoContainer = (video) => {
  * @returns {HTMLElement} The created button.
  */
 const getScoreContainer = (score) => {
-    const button = document.createElement("button");
-    button.type = "button";
+    const container = document.createElement("div");
 
     if (score >= 50)
-        button.className = "btn btn-success";
+        container.className = "ky-score ky-success";
     else
-        button.className = "btn btn-danger";
+        container.className = "ky-score ky-error";
 
-    button.innerHTML = score;
+    const text = document.createElement('p');
+    text.innerHTML = score;
 
-    return button;
+    container.appendChild(text)
+
+    return container;
 }
 
 /** Creates and returns a button to display low scored videos
@@ -485,19 +506,14 @@ const getScoreContainer = (score) => {
  * @returns {HTMLElement} The created button.
  */
 const getLowScoreButton = () => {
-    const container = document.createElement('div');
-    container.className = "d-grid";
-
     const button = document.createElement('button');
-    button.className = "btn btn-large btn-outline-danger fs-3 col-12";
+    button.className = "ky-button";
     button.type = "button";
     button.innerHTML = "Display low score videos";
     button.onclick = requestLowScoreVideos;
     button.id = ELEMENT_IDS.lowScoreButton;
 
-    container.appendChild(button);
-
-    return container;
+    return button;
 }
 
 /** Send instruction to the worker the get the low scored videos. */
