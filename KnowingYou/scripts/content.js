@@ -29,7 +29,8 @@ const ELEMENT_IDS = {
     recommendationsContainer: 'wnnContainer',
     loading: 'loadingMessage',
     lowScoreButton: 'lowScoreButton',
-    messageContainer: 'kyMessageContainer'
+    messageContainer: 'kyMessageContainer',
+    surveyLinkWrapper: 'kySurvey'
 }
 
 /** @constant {string} MAIN_HEADER - Header of the container, name of recommender. */
@@ -215,7 +216,32 @@ const initialiseContainer = (elementId) => {
 
     grid.appendChild(getLoadingMessage());
 
+    container.appendChild(getSurveyInfo());
+
     youTubeElement.prepend(container);
+}
+
+/** Retrieving an informational element with survey link.
+ * @returns {HTMLElement} The survey info element.
+ */
+const getSurveyInfo = () => {
+    const infoWrapper = document.createElement("div");
+    infoWrapper.id = ELEMENT_IDS.surveyLinkWrapper;
+
+    const text = document.createElement("p");
+    text.className = "ky-survey-info";
+    text.innerHTML = "This study is conducted for academic purposes; please complete our ";
+
+    const link = document.createElement("a");
+    link.href = "https://eu.surveymonkey.com/r/WNTFNXV";
+    link.innerHTML = "survey!";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+
+    text.appendChild(link);
+    infoWrapper.appendChild(text);
+
+    return infoWrapper;
 }
 
 /** Retrieving an YouTube element based on ID, a recurrsion to avoid
@@ -308,7 +334,7 @@ PORT.onMessage.addListener((message) => {
 
             // Append a button to display low score videos if there isn't one
             if (!document.getElementById(ELEMENT_IDS.lowScoreButton)) {
-                document.getElementById(ELEMENT_IDS.recommendationsWrapper).appendChild(getLowScoreButton());
+                document.getElementById(ELEMENT_IDS.recommendationsWrapper).insertBefore(getLowScoreButton(), document.getElementById(ELEMENT_IDS.surveyLinkWrapper));
             }
 
             break;
@@ -386,7 +412,7 @@ const displayMessage = (info, elementId) => {
 
     messageContainer.appendChild(messageText);
 
-    container.appendChild(messageContainer);
+    container.insertBefore(messageContainer, document.getElementById(ELEMENT_IDS.surveyLinkWrapper));
 }
 
 /** Loads the recommendations into the page.
@@ -458,7 +484,6 @@ const getVideoContainer = (video) => {
     let channelElement = document.createElement("p");
     channelElement.className = "ky-video-text ky-video-channel"
     channelElement.textContent = video.channel;
-
 
     // Append elements
     col.appendChild(thumbnail);
